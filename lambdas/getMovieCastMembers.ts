@@ -4,6 +4,7 @@ import {
   DynamoDBDocumentClient,
   QueryCommand,
   QueryCommandInput,
+  GetCommand, 
 } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDocumentClient();
@@ -67,12 +68,29 @@ export const handler: Handler = async (event, context) => {
       };
     }
 
+    
     const commandOutput = await ddbDocClient.send(new QueryCommand(commandInput));
+    const castData = commandOutput.Items || [];
+
+    
+    let movieData = {}; 
+    if (queryParams.movie === "true") { 
+      const movieResult = await ddbDocClient.send(
+        new GetCommand({
+          TableName: process.env.MOVIE_TABLE_NAME,
+          Key: { id: movieId }, 
+        })
+      );
+      movieData = movieResult.Item || {};
+    }
+
     return {
       statusCode: 200,
       headers: { "content-type": "application/json" },
+      
       body: JSON.stringify({
-        data: commandOutput.Items,
+        movieDetails: movieData, 
+        castData: castData,
       }),
     };
   } catch (error: any) {
