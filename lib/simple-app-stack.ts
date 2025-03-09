@@ -1,22 +1,18 @@
 import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import * as lambdanode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import { Construct } from 'constructs';
 
 export class SimpleAppStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-        super(scope, id, props);
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
 
-        // 创建 Lambda 函数
-        const helloLambda = new lambda.Function(this, 'HelloHandler', {
-            runtime: lambda.Runtime.NODEJS_18_X,
-            code: lambda.Code.fromAsset('lambda'),
-            handler: 'hello.handler'
-        });
-
-        // 创建 API Gateway
-        new apigateway.LambdaRestApi(this, 'Endpoint', {
-            handler: helloLambda
-        });
-    }
+    const simpleFn = new lambdanode.NodejsFunction(this, "SimpleFn", {
+      architecture: lambda.Architecture.ARM_64,
+      runtime: lambda.Runtime.NODEJS_22_X,
+      entry: `${__dirname}/../lambdas/simple.ts`,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 128,
+    });
+  }
 }
